@@ -97,6 +97,11 @@ def getEnclosed(no_line, image, output_size = 120, save = False):
 
     Returns
     -------
+    centroids : list
+        Contains a list of tuples, where the ith element corresponds to 
+        (x, y) coordinates of the ith ROI.
+    original : ndarray
+        Contains the netlist in image format
     regions : ndarray of shape (num_regions, output_size, output_size)
         Contains each region of interest in array format.
 
@@ -135,8 +140,8 @@ def getEnclosed(no_line, image, output_size = 120, save = False):
         yy = (hh - ht) // 2
         regions[i, yy:yy+ht, xx:xx+wd] = ROI
         ROI_number += 1
-        
+    if save:
+        cv2.imwrite("netlist.jpg", original)
     return centroids, original, regions
         
 coords, netlist, regions = getEnclosed(no_line, thresh, save = True)
-cv2.imwrite("netlist.jpg", netlist)
