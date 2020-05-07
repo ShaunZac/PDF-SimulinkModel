@@ -76,3 +76,26 @@ def removeLines(image, save = False):
     return no_line
 
 no_line = removeLines(filled, save = True)
+
+def getEnclosed(no_line, image, save = False):
+    
+    # n is amount by which to widen area since we get eroded image
+    # 11 = 5 + (5-2)*(no. of iterations)
+    n = 11
+    ROI_number = 0
+    original = image.copy()
+    
+    # getting contours in the image, 255-no_line so that base is black
+    cnts = cv2.findContours(255-no_line, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    cnts = cnts[0] if len(cnts) == 2 else cnts[1]
+    
+    for c in cnts:
+        x,y,w,h = cv2.boundingRect(c)
+        #cv2.rectangle(image, (x-n, y-n), (x + w + n, y + h + n), (36,255,12), 2)
+        ROI = original[y-n : y+h+n, x-n : x+w+n]
+        if save:
+            cv2.imwrite('enclosed\ROI_{}.jpg'.format(ROI_number), ROI)
+        ROI_number += 1
+    return
+        
+getEnclosed(no_line, thresh)
