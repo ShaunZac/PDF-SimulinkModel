@@ -114,10 +114,17 @@ def getEnclosed(no_line, image, output_size = 120, save = False):
     # creating empty stack in which all segmented images will be stored
     regions = np.zeros((len(cnts), output_size, output_size))
     
+    # creating an empty list to keep track of centers of blocks
+    centroids = []
+    
     for i, c in enumerate(cnts):
         x,y,w,h = cv2.boundingRect(c)
-        #cv2.rectangle(image, (x-n, y-n), (x + w + n, y + h + n), (36,255,12), 2)
-        ROI = original[y-n : y+h+n, x-n : x+w+n]
+        # appending centers of blocks in the list
+        centroids.append((x+w//2, y+h//2))
+        ROI = image[y-n : y+h+n, x-n : x+w+n]
+        
+        # setting to 0 so that only netlist can be seen
+        original[y-n : y+h+n, x-n : x+w+n] = 0
         if save:
             cv2.imwrite('enclosed\ROI_{}.jpg'.format(ROI_number), ROI)
         
@@ -129,6 +136,7 @@ def getEnclosed(no_line, image, output_size = 120, save = False):
         regions[i, yy:yy+ht, xx:xx+wd] = ROI
         ROI_number += 1
         
-    return regions
+    return centroids, original, regions
         
-regions = getEnclosed(no_line, thresh, save = True)
+coords, netlist, regions = getEnclosed(no_line, thresh, save = True)
+cv2.imwrite("netlist.jpg", netlist)
