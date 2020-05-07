@@ -78,7 +78,29 @@ def removeLines(image, save = False):
 no_line = removeLines(filled, save = True)
 
 def getEnclosed(no_line, image, output_size = 120, save = False):
-    
+    """
+    Parameters
+    ----------
+    no_line : ndarray
+        Takes the image with eroded lines as input, has to be binary image.
+    image : ndarray
+        Takes the image from which segmented parts should be cropped out.
+        Will work best if binary thresholded image is given as argument.
+    output_size : int, optional
+        All the cropped images will be padded to become of this size, 
+        its value should be greater than the width/height of each Region 
+        of Interest. The default is 120.
+    save : Bool, optional
+        If true, it saves each region of interest in the working directory
+        with the nameing convention 'ROI_i.jpg', where i is the i'th image.
+        The default is False.
+
+    Returns
+    -------
+    regions : ndarray of shape (num_regions, output_size, output_size)
+        Contains each region of interest in array format.
+
+    """
     # n is amount by which to widen area since we get eroded image
     # 11 = 5 + (5-2)*(no. of iterations)
     n = 11
