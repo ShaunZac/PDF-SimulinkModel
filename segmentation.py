@@ -35,7 +35,7 @@ def fill(image, save = False):
     Creates image with all the enclosed spaces filled
     """
     # filling all enclosed areas
-    h, w = image.shape
+    h, w = image.shape[:2]
     seed = (w//2,h//2)
     mask = np.zeros((h+2,w+2),np.uint8)
     floodflags = 4
