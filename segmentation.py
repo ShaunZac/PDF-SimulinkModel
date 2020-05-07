@@ -77,7 +77,7 @@ def removeLines(image, save = False):
 
 no_line = removeLines(filled, save = True)
 
-def getEnclosed(no_line, image, save = False):
+def getEnclosed(no_line, image, output_size = 120, save = False):
     
     # n is amount by which to widen area since we get eroded image
     # 11 = 5 + (5-2)*(no. of iterations)
@@ -89,13 +89,24 @@ def getEnclosed(no_line, image, save = False):
     cnts = cv2.findContours(255-no_line, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     cnts = cnts[0] if len(cnts) == 2 else cnts[1]
     
-    for c in cnts:
+    # creating empty stack in which all segmented images will be stored
+    regions = np.zeros((len(cnts), output_size, output_size))
+    
+    for i, c in enumerate(cnts):
         x,y,w,h = cv2.boundingRect(c)
         #cv2.rectangle(image, (x-n, y-n), (x + w + n, y + h + n), (36,255,12), 2)
         ROI = original[y-n : y+h+n, x-n : x+w+n]
         if save:
             cv2.imwrite('enclosed\ROI_{}.jpg'.format(ROI_number), ROI)
-        ROI_number += 1
-    return
         
-getEnclosed(no_line, thresh)
+        ww = hh = output_size
+        ht, wd = ROI.shape
+        # compute center offset
+        xx = (ww - wd) // 2
+        yy = (hh - ht) // 2
+        regions[i, yy:yy+ht, xx:xx+wd] = ROI
+        ROI_number += 1
+        
+    return regions
+        
+regions = getEnclosed(no_line, thresh, save = True)
