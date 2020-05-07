@@ -50,3 +50,29 @@ def fill(image, save = False):
     return mask
 
 filled = fill(thresh)
+
+def removeLines(image, save = False):
+    """
+    Parameters
+    ----------
+    image : ndarray
+        The input image from which lines are to be eroded.
+    save : Boolean, optional
+        If true, it saves the no line image in the working directory with the
+        name 'no lines.jpg'. The default is False.
+
+    Returns
+    -------
+    no_line : ndarray
+        Performs morphological dilation to cause the lines to get eroded.
+    """
+    
+    kernel = np.ones((5, 5), np.uint8)
+    
+    # morphological operation to remove the lines
+    no_line = cv2.dilate(filled, kernel, iterations=2)
+    if save:
+        cv2.imwrite("no lines.jpg", no_line)
+    return no_line
+
+no_line = removeLines(filled, save = True)
