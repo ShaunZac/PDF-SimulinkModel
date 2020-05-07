@@ -70,7 +70,7 @@ def removeLines(image, save = False):
     kernel = np.ones((5, 5), np.uint8)
     
     # morphological operation to remove the lines
-    no_line = cv2.dilate(filled, kernel, iterations=2)
+    no_line = cv2.dilate(filled, kernel, iterations=3)
     if save:
         cv2.imwrite("no lines.jpg", no_line)
     return no_line
