@@ -107,8 +107,8 @@ def getEnclosed(no_line, image, output_size = 120, save = False):
 
     """
     # n is amount by which to widen area since we get eroded image
-    # 11 = 5 + (5-2)*(no. of iterations)
-    n = 11
+    # 13 = 5 + (5-1)*(no. of iterations)
+    n = 13
     ROI_number = 0
     original = image.copy()
     
