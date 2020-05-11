@@ -51,7 +51,7 @@ def fill(image, save = False):
 
 filled = fill(thresh)
 
-def removeLines(image, save = False):
+def removeLines(image, itr = 3, save = False):
     """
     Parameters
     ----------
@@ -70,7 +70,7 @@ def removeLines(image, save = False):
     kernel = np.ones((5, 5), np.uint8)
     
     # morphological operation to remove the lines
-    no_line = cv2.dilate(filled, kernel, iterations=3)
+    no_line = cv2.dilate(image, kernel, iterations=itr)
     if save:
         cv2.imwrite("no lines.jpg", no_line)
     return no_line
@@ -97,13 +97,18 @@ def getEnclosed(no_line, image, output_size = 120, save = False):
 
     Returns
     -------
+    centroids : list
+        Contains a list of tuples, where the ith element corresponds to 
+        (x, y) coordinates of the ith ROI.
+    original : ndarray
+        Contains the netlist in image format
     regions : ndarray of shape (num_regions, output_size, output_size)
         Contains each region of interest in array format.
 
     """
     # n is amount by which to widen area since we get eroded image
-    # 11 = 5 + (5-2)*(no. of iterations)
-    n = 11
+    # 13 = 5 + (5-1)*(no. of iterations-1)
+    n = 13
     ROI_number = 0
     original = image.copy()
     
@@ -114,10 +119,17 @@ def getEnclosed(no_line, image, output_size = 120, save = False):
     # creating empty stack in which all segmented images will be stored
     regions = np.zeros((len(cnts), output_size, output_size))
     
+    # creating an empty list to keep track of centers of blocks
+    centroids = []
+    
     for i, c in enumerate(cnts):
         x,y,w,h = cv2.boundingRect(c)
-        #cv2.rectangle(image, (x-n, y-n), (x + w + n, y + h + n), (36,255,12), 2)
-        ROI = original[y-n : y+h+n, x-n : x+w+n]
+        # appending centers of blocks in the list
+        centroids.append((x+w//2, y+h//2))
+        ROI = image[y-n : y+h+n, x-n : x+w+n]
+        
+        # setting to 0 so that only netlist can be seen
+        original[y-n : y+h+n, x-n : x+w+n] = 0
         if save:
             cv2.imwrite('enclosed\ROI_{}.jpg'.format(ROI_number), ROI)
         
@@ -128,7 +140,8 @@ def getEnclosed(no_line, image, output_size = 120, save = False):
         yy = (hh - ht) // 2
         regions[i, yy:yy+ht, xx:xx+wd] = ROI
         ROI_number += 1
+    if save:
+        cv2.imwrite("netlist.jpg", original)
+    return centroids, original, regions
         
-    return regions
-        
-regions = getEnclosed(no_line, thresh, save = True)
+coords, netlist, regions = getEnclosed(no_line, thresh, save = True)
