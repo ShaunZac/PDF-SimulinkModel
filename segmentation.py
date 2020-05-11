@@ -51,7 +51,7 @@ def fill(image, save = False):
 
 filled = fill(thresh)
 
-def removeLines(image, save = False):
+def removeLines(image, itr = 3, save = False):
     """
     Parameters
     ----------
@@ -70,7 +70,7 @@ def removeLines(image, save = False):
     kernel = np.ones((5, 5), np.uint8)
     
     # morphological operation to remove the lines
-    no_line = cv2.dilate(filled, kernel, iterations=3)
+    no_line = cv2.dilate(image, kernel, iterations=itr)
     if save:
         cv2.imwrite("no lines.jpg", no_line)
     return no_line
@@ -107,7 +107,7 @@ def getEnclosed(no_line, image, output_size = 120, save = False):
 
     """
     # n is amount by which to widen area since we get eroded image
-    # 13 = 5 + (5-1)*(no. of iterations)
+    # 13 = 5 + (5-1)*(no. of iterations-1)
     n = 13
     ROI_number = 0
     original = image.copy()
