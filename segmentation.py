@@ -145,3 +145,54 @@ def getEnclosed(no_line, image, output_size = 120, save = False):
     return centroids, original, regions
         
 coords, netlist, regions = getEnclosed(no_line, thresh, save = True)
+
+def getLinesArrows(netlist, save = False):
+    """
+    Parameters
+    ----------
+    netlist : ndarray
+        Should contain netlist with arrows.
+    save : bool, optional
+        If True, it saves the arrows and lines images. The default is False.
+
+    Returns
+    -------
+    arrow_coords : list
+        Contains list of tuples, where the ith element corresponds to 
+        (x, y) coordinates of centroid of arrows.
+    lines : ndarray
+        Contains the array of the image containing just the lines.
+    """
+    
+    kernel = np.ones((3, 3), np.uint8)
+    # n is amount by which to widen area since we get eroded image
+    n = 3
+    arrow = cv2.erode(netlist, kernel, iterations=1)
+    
+    if save:
+        cv2.imwrite('arrows.jpg', arrow)
+    
+    # getting the contours of the arrow image
+    cnts, _ = cv2.findContours(arrow, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    lines = netlist.copy()
+    arrow_coords = []
+    
+    for cnt in cnts:
+        # checking is the arrow is a circle (if circle, it is left in the lines image)
+        area = cv2.contourArea(cnt)
+        perimeter = cv2.arcLength(cnt,True)
+        pi = 3.14159265
+        circularity = 4*pi*(area/perimeter**2)
+        
+        # setting a threshold for circularity
+        if circularity < 0.8:
+            x,y,w,h = cv2.boundingRect(cnt)
+            arrow_coords.append((x+w//2, y+h//2))
+            # setting the extracted part to 0 so that arrows are not in 'lines'
+            lines[y-n : y+h+n, x-n : x+w+n] = 0
+    if save:
+        cv2.imwrite('lines.jpg', lines)
+    
+    return arrow_coords, lines
+
+arrow_coords, lines = getLinesArrows(netlist, save = True)
