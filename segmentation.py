@@ -97,9 +97,9 @@ def getEnclosed(no_line, image, output_size = 120, save = False):
 
     Returns
     -------
-    centroids : list
-        Contains a list of tuples, where the ith element corresponds to 
-        (x, y) coordinates of the ith ROI.
+    centroids : ndarray
+        Contains a list of tuples, converted to array, where the ith element 
+        corresponds to (x, y) coordinates of the ith ROI. shape = (no. of points, 2)
     original : ndarray
         Contains the netlist in image format
     regions : ndarray of shape (num_regions, output_size, output_size)
@@ -142,7 +142,7 @@ def getEnclosed(no_line, image, output_size = 120, save = False):
         ROI_number += 1
     if save:
         cv2.imwrite("netlist.jpg", original)
-    return centroids, original, regions
+    return np.array(centroids), original, regions
         
 coords, netlist, regions = getEnclosed(no_line, thresh, save = True)
 
@@ -157,9 +157,9 @@ def getLinesArrows(netlist, save = False):
 
     Returns
     -------
-    arrow_coords : list
-        Contains list of tuples, where the ith element corresponds to 
-        (x, y) coordinates of centroid of arrows.
+    arrow_coords : ndarray
+        Contains list of tuples, converted to array, where the ith element corresponds to 
+        (x, y) coordinates of centroid of arrows. shape = (no. of points, 2)
     lines : ndarray
         Contains the array of the image containing just the lines.
     """
@@ -193,6 +193,6 @@ def getLinesArrows(netlist, save = False):
     if save:
         cv2.imwrite('lines.jpg', lines)
     
-    return arrow_coords, lines
+    return np.array(arrow_coords), lines
 
 arrow_coords, lines = getLinesArrows(netlist, save = True)
