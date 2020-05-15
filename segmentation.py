@@ -9,7 +9,7 @@ Created on Thu May  7 08:45:18 2020
 import cv2
 import numpy as np
 
-folder = "enclosed_2/"
+folder = "enclosed/"
 # reading the image
 img = cv2.imread(folder + "0.jpg", 1)
  
@@ -33,9 +33,9 @@ def fill(image, save = False):
     Returns
     -------
     mask : The array version of the filled image
-    Creates image with all the enclosed_2 spaces filled
+    Creates image with all the enclosed spaces filled
     """
-    # filling all enclosed_2 areas
+    # filling all enclosed areas
     h, w = image.shape[:2]
     seed = (w//2,h//2)
     mask = np.zeros((h+2,w+2),np.uint8)
@@ -50,7 +50,7 @@ def fill(image, save = False):
         cv2.imwrite(folder + "filled.jpg", mask)
     return mask
 
-filled = fill(thresh)
+filled = fill(thresh, save = True)
 
 def removeLines(image, itr = 3, save = False):
     """
@@ -108,8 +108,8 @@ def getEnclosed(no_line, image, output_size = 120, save = False):
 
     """
     # n is amount by which to widen area since we get eroded image
-    # 13 = 5 + (5-1)*(no. of iterations-1)
-    n = 13
+    # 15 = (size of dilating kernel)*(num of iterations) = 5*3
+    n = 15
     ROI_number = 0
     original = image.copy()
     
@@ -131,8 +131,6 @@ def getEnclosed(no_line, image, output_size = 120, save = False):
         
         # setting to 0 so that only netlist can be seen
         original[y-n : y+h+n, x-n : x+w+n] = 0
-        if save:
-            cv2.imwrite("enclosed_2\ROI_{}.jpg".format(ROI_number), ROI)
         
         ww = hh = output_size
         ht, wd = ROI.shape
@@ -140,6 +138,8 @@ def getEnclosed(no_line, image, output_size = 120, save = False):
         xx = (ww - wd) // 2
         yy = (hh - ht) // 2
         regions[i, yy:yy+ht, xx:xx+wd] = ROI
+        if save:
+            cv2.imwrite(folder + "ROI_{}.jpg".format(ROI_number), regions[i, :, :])
         ROI_number += 1
     if save:
         cv2.imwrite(folder + "netlist.jpg", original)
