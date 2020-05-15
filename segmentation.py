@@ -9,8 +9,9 @@ Created on Thu May  7 08:45:18 2020
 import cv2
 import numpy as np
 
+folder = "enclosed_2/"
 # reading the image
-img = cv2.imread('enclosed/0.jpg', 1)
+img = cv2.imread(folder + "0.jpg", 1)
  
 # convert the image to grayscale
 gray_image = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -32,9 +33,9 @@ def fill(image, save = False):
     Returns
     -------
     mask : The array version of the filled image
-    Creates image with all the enclosed spaces filled
+    Creates image with all the enclosed_2 spaces filled
     """
-    # filling all enclosed areas
+    # filling all enclosed_2 areas
     h, w = image.shape[:2]
     seed = (w//2,h//2)
     mask = np.zeros((h+2,w+2),np.uint8)
@@ -46,7 +47,7 @@ def fill(image, save = False):
     
     # saving the mask
     if save:
-        cv2.imwrite("filled.jpg", mask)
+        cv2.imwrite(folder + "filled.jpg", mask)
     return mask
 
 filled = fill(thresh)
@@ -72,7 +73,7 @@ def removeLines(image, itr = 3, save = False):
     # morphological operation to remove the lines
     no_line = cv2.dilate(image, kernel, iterations=itr)
     if save:
-        cv2.imwrite("no lines.jpg", no_line)
+        cv2.imwrite(folder + "no lines.jpg", no_line)
     return no_line
 
 no_line = removeLines(filled, save = True)
@@ -131,7 +132,7 @@ def getEnclosed(no_line, image, output_size = 120, save = False):
         # setting to 0 so that only netlist can be seen
         original[y-n : y+h+n, x-n : x+w+n] = 0
         if save:
-            cv2.imwrite('enclosed\ROI_{}.jpg'.format(ROI_number), ROI)
+            cv2.imwrite("enclosed_2\ROI_{}.jpg".format(ROI_number), ROI)
         
         ww = hh = output_size
         ht, wd = ROI.shape
@@ -141,7 +142,7 @@ def getEnclosed(no_line, image, output_size = 120, save = False):
         regions[i, yy:yy+ht, xx:xx+wd] = ROI
         ROI_number += 1
     if save:
-        cv2.imwrite("netlist.jpg", original)
+        cv2.imwrite(folder + "netlist.jpg", original)
     return np.array(centroids), original, regions
         
 coords, netlist, regions = getEnclosed(no_line, thresh, save = True)
@@ -170,7 +171,7 @@ def getLinesArrows(netlist, save = False):
     arrow = cv2.erode(netlist, kernel, iterations=1)
     
     if save:
-        cv2.imwrite('arrows.jpg', arrow)
+        cv2.imwrite(folder + "arrows.jpg", arrow)
     
     # getting the contours of the arrow image
     cnts, _ = cv2.findContours(arrow, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -185,13 +186,13 @@ def getLinesArrows(netlist, save = False):
         circularity = 4*pi*(area/perimeter**2)
         
         # setting a threshold for circularity
-        if circularity < 0.8:
+        if circularity < 0.75:
             x,y,w,h = cv2.boundingRect(cnt)
             arrow_coords.append((x+w//2, y+h//2))
             # setting the extracted part to 0 so that arrows are not in 'lines'
             lines[y-n : y+h+n, x-n : x+w+n] = 0
     if save:
-        cv2.imwrite('lines.jpg', lines)
+        cv2.imwrite(folder + "lines.jpg", lines)
     
     return np.array(arrow_coords), lines
 
