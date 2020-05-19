@@ -197,3 +197,27 @@ def getLinesArrows(netlist, save = False):
     return np.array(arrow_coords), lines
 
 arrow_coords, lines = getLinesArrows(netlist, save = True)
+
+def closestPoint(left, right):
+    """
+    Parameters
+    ----------
+    left : ndarray
+        Takes array of points of shape (no of points, 2), this should contain
+        either the coordinates of the arrows, or the starting points of lines.
+    right : ndarray
+        Takes array of points of shape (no of points, 2), this should always
+        contain the coordinates of the boxes (coords).
+
+    Returns
+    -------
+    corresp_box : list
+        Contains the serial number of the box which is nearest to each point in 
+        the array named 'left'.
+
+    """
+    corresp_box = []
+    for node in left:
+        distsq = np.sum((right - node)**2, axis = 1)
+        corresp_box.append(distsq.argmin())
+    return corresp_box
