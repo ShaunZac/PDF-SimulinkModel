@@ -127,10 +127,10 @@ def getEnclosed(no_line, image, output_size = 120, save = False):
         x,y,w,h = cv2.boundingRect(c)
         # appending centers of blocks in the list
         centroids.append((x+w//2, y+h//2))
-        ROI = image[y-n : y+h+n, x-n : x+w+n]
+        ROI = image[y-n : y+h+n, x-n+5 : x+w+n+5]
         
         # setting to 0 so that only netlist can be seen
-        original[y-n : y+h+n, x-n : x+w+n] = 0
+        original[y-n : y+h+n, x-n+5 : x+w+n+5] = 0
         
         ww = hh = output_size
         ht, wd = ROI.shape
