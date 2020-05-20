@@ -373,3 +373,6 @@ def debugVerify(lines, save = False):
     return trial
 
 debugVerify(lines, save = True)
+
+block_data = pd.DataFrame(coords, columns = ['X', 'Y'])
+block_data.to_csv(folder + "Block Data.csv")
