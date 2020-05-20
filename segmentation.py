@@ -8,6 +8,7 @@ Created on Thu May  7 08:45:18 2020
 
 import cv2
 import numpy as np
+import pandas as pd
 
 folder = "enclosed/"
 # reading the image
@@ -221,3 +222,86 @@ def closestPoint(left, right):
         distsq = np.sum((right - node)**2, axis = 1)
         corresp_box.append(distsq.argmin())
     return corresp_box
+
+def getConnections(lines, coords, arrow_coords, save = False):
+    """
+    Parameters
+    ----------
+    lines : ndarray
+        The image containing only the lines.
+    coords : ndarray
+        The coordinates of the boxes.
+    arrow_coords : ndarray
+        The coordinates of the arrows.
+    save : Bool, optional
+        Saves the connections in a CSV format. The default is False.
+
+    Returns
+    -------
+    conn : pandas DataFrame
+        Contains the connection data, which block number is connected to 
+        which block number is given.
+
+    """
+    # Finding the contours of the lines
+    contours, _ = cv2.findContours(lines, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    
+    # defining 2 kernels, one for line with 1 pixel width, one for 2 pixel width
+    # these will help in detecting the starting points of the connections
+    kernel = np.array(
+        [[-1, -1, -1],
+         [-1, 1, 0],
+         [-1, -1, -1]], np.int32)
+    kernel2 = np.array(
+        [[0, -1, -1, -1, 0],
+         [-1, -1, 1, 0, 0],
+         [-1, -1, 1, 0, 0],
+         [0, -1, -1, -1, 0],
+         [0, 0, 0, 0, 0]])
+    
+    # the offset by which the bounding box is to be made larger to get the 
+    # arrows in the bounding boxes
+    n = 15
+    conn = []
+    
+    # finding which arrow corresponds to which box
+    arrow_blocks = closestPoint(arrow_coords, coords)
+    
+    # singling out each contour (line) and finding out its starting point and 
+    # corresponding arrow via hit-miss morphological transform and checking which
+    # arrow comes in which bounding box
+    for i, cnt in enumerate(contours):
+        skel = np.zeros((1700, 2200), np.uint8)
+        x,y,w,h = cv2.boundingRect(cnt)
+        cv2.drawContours(skel, contours, i, 255, 1)
+        
+        # one of endpts, endpts2 has to be empty as a contour cannot have both
+        endpts = np.column_stack(np.where(cv2.morphologyEx(skel, 
+                                                            cv2.MORPH_HITMISS, kernel)>0))
+        endpts2 = np.column_stack(np.where(cv2.morphologyEx(skel, 
+                                                            cv2.MORPH_HITMISS, kernel2)>0))
+        # ignoring the one which is empty
+        if len(endpts)==0:
+            start_coords = endpts2
+        else:
+            start_coords = endpts
+            
+        # reversing the order, so that it is compatible with openCV format
+        start_coords = start_coords[:,[1, 0]]
+        
+        # checking which arrows lie inside the bounding box
+        blocks = np.where(((x-n < arrow_coords[:, 0]) & (arrow_coords[:, 0] < x + w + n)) 
+                          & ((y-n < arrow_coords[:, 1]) & (arrow_coords[:, 1] < y + h + n)))
+        
+        # making a list called connections, that will hold the connection data
+        for j in blocks[0]:
+            conn.append((closestPoint(start_coords, coords)[0], arrow_blocks[j]))
+    
+    # saving it in csv format
+    conn = pd.DataFrame(np.array(conn), columns = ['From', 'To']).drop_duplicates()
+    if save:
+        conn.to_csv(folder + "connections.csv", index = False)
+    
+    return conn
+
+conn = getConnections(lines, coords, arrow_coords, save = True)
