@@ -376,4 +376,4 @@ def debugVerify(lines, save = False):
 debugVerify(lines, save = True)
 
 block_data = pd.DataFrame(coords, columns = ['X', 'Y'])
-block_data.to_csv(folder + "Block Data.csv")
+block_data.to_csv(folder + "Block Data.csv", index = False)
