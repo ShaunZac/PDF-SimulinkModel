@@ -10,7 +10,7 @@ import cv2
 import numpy as np
 import pandas as pd
 
-folder = "enclosed/"
+folder = "enclosed_3/"
 # reading the image
 img = cv2.imread(folder + "0.jpg", 1)
  
@@ -305,3 +305,71 @@ def getConnections(lines, coords, arrow_coords, save = False):
     return conn
 
 conn = getConnections(lines, coords, arrow_coords, save = True)
+
+def debugVerify(lines, save = False):    
+    """
+    Parameters
+    ----------
+    lines : ndarray
+        The image containing only the lines.
+    save : Bool, optional
+        Saves the image that can be used to verify if the connections given by 
+        getConnections is correct. The default is False.
+
+    Returns
+    -------
+    trial : ndarray
+        Contains every line individually circled, with the box number nearest 
+        to each endpoint marked in the image.
+
+    """
+    contours, _ = cv2.findContours(lines, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    
+    n = 15
+    trial = np.zeros((1700, 2200, 3), np.uint8)
+    for i in range(3):
+        trial[:,:,i] = lines.copy()
+    for cnt in contours:
+        x,y,w,h = cv2.boundingRect(cnt)
+        cv2.rectangle(trial,(x-n,y-n),(x+w+n,y+h+n),(0,255,0),2)
+    
+    skel = np.zeros((1700, 2200), np.uint8)
+    cv2.drawContours(skel, contours, -1, 255, 1)
+    cv2.imwrite(folder + "skeleton.jpg", skel)
+    
+    kernel = np.array(
+        [[-1, -1, -1],
+          [-1, 1, 0],
+          [-1, -1, -1]], np.int32)
+    endpts = np.column_stack(np.where(cv2.morphologyEx(skel, cv2.MORPH_HITMISS, kernel)>0))
+    
+    kernel2 = np.array(
+        [[0, -1, -1, -1, 0],
+          [-1, -1, 1, 0, 0],
+          [-1, -1, 1, 0, 0],
+          [0, -1, -1, -1, 0]])
+    endpts2 = np.column_stack(np.where(cv2.morphologyEx(skel, cv2.MORPH_HITMISS, kernel2)>0))
+    
+    start_coords = np.concatenate((endpts, endpts2), axis = 0)
+    start_coords = start_coords[:,[1, 0]]
+    
+    
+    start_blocks = closestPoint(start_coords, coords)
+    arrow_blocks = closestPoint(arrow_coords, coords)
+        
+    for idx, i in enumerate(start_coords):
+        cX, cY = i
+        cv2.circle(trial, (cX, cY), 5, (0, 0, 255), -1)
+        cv2.putText(trial, str(start_blocks[idx]), (cX - 10, cY - 10),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+    for idx, i in enumerate(arrow_coords):
+        cX, cY = i
+        cv2.circle(trial, (cX, cY), 5, (255, 0, 0), -1)
+        cv2.putText(trial, str(arrow_blocks[idx]), (cX - 10, cY - 10),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+        
+    if save:
+        cv2.imwrite(folder + "trial.jpg", trial)
+    return trial
+
+debugVerify(lines, save = True)
