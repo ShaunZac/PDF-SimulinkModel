@@ -104,7 +104,7 @@ def getEnclosed(no_line, image, output_size = 120, save = False):
         corresponds to (x, y) coordinates of the ith ROI. shape = (no. of points, 2)
     original : ndarray
         Contains the netlist in image format
-    regions : ndarray of shape (num_regions, output_size, output_size)
+    regions : ndarray of shape (num_regions, output_size, output_size, 1)
         Contains each region of interest in array format.
 
     """
@@ -119,7 +119,7 @@ def getEnclosed(no_line, image, output_size = 120, save = False):
     cnts = cnts[0] if len(cnts) == 2 else cnts[1]
     
     # creating empty stack in which all segmented images will be stored
-    regions = np.zeros((len(cnts), output_size, output_size))
+    regions = np.zeros((len(cnts), output_size, output_size, 1))
     
     # creating an empty list to keep track of centers of blocks
     centroids = []
@@ -138,12 +138,13 @@ def getEnclosed(no_line, image, output_size = 120, save = False):
         # compute center offset
         xx = (ww - wd) // 2
         yy = (hh - ht) // 2
-        regions[i, yy:yy+ht, xx:xx+wd] = ROI
+        regions[i, yy:yy+ht, xx:xx+wd, 0] = ROI
         if save:
-            cv2.imwrite(folder + "ROI_{}.jpg".format(ROI_number), regions[i, :, :])
+            cv2.imwrite(folder + "ROI_{}.jpg".format(ROI_number), regions[i, :, :, 0])
         ROI_number += 1
     if save:
         cv2.imwrite(folder + "netlist.jpg", original)
+        np.save(folder + "regions", regions)
     return np.array(centroids), original, regions
         
 coords, netlist, regions = getEnclosed(no_line, thresh, save = True)
