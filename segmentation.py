@@ -188,7 +188,7 @@ def getLinesArrows(netlist, save = False):
         circularity = 4*pi*(area/perimeter**2)
         
         # setting a threshold for circularity
-        if circularity < 0.75:
+        if circularity < 0.72:
             x,y,w,h = cv2.boundingRect(cnt)
             arrow_coords.append((x+w//2, y+h//2))
             # setting the extracted part to 0 so that arrows are not in 'lines'
