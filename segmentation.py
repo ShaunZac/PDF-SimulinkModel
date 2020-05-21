@@ -10,17 +10,7 @@ import cv2
 import numpy as np
 import pandas as pd
 
-folder = "enclosed_3/"
-# reading the image
-img = cv2.imread(folder + "0.jpg", 1)
- 
-# convert the image to grayscale
-gray_image = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
- 
-# convert the grayscale image to binary image
-ret,thresh = cv2.threshold(gray_image, 0, 255, cv2.THRESH_BINARY_INV|cv2.THRESH_OTSU)
-
-def fill(image, save = False):
+def fill(image, folder, save = False):
     """
     Parameters
     ----------
@@ -51,9 +41,8 @@ def fill(image, save = False):
         cv2.imwrite(folder + "filled.jpg", mask)
     return mask
 
-filled = fill(thresh, save = True)
 
-def removeLines(image, itr = 3, save = False):
+def removeLines(image, folder, itr = 3, save = False):
     """
     Parameters
     ----------
@@ -77,9 +66,8 @@ def removeLines(image, itr = 3, save = False):
         cv2.imwrite(folder + "no lines.jpg", no_line)
     return no_line
 
-no_line = removeLines(filled, save = True)
 
-def getEnclosed(no_line, image, output_size = 120, save = False):
+def getEnclosed(no_line, image, folder, output_size = 120, save = False):
     """
     Parameters
     ----------
@@ -146,10 +134,9 @@ def getEnclosed(no_line, image, output_size = 120, save = False):
         cv2.imwrite(folder + "netlist.jpg", original)
         np.save(folder + "regions", regions)
     return np.array(centroids), original, regions
-        
-coords, netlist, regions = getEnclosed(no_line, thresh, save = True)
 
-def getLinesArrows(netlist, save = False):
+
+def getLinesArrows(netlist, folder, save = False):
     """
     Parameters
     ----------
@@ -198,7 +185,6 @@ def getLinesArrows(netlist, save = False):
     
     return np.array(arrow_coords), lines
 
-arrow_coords, lines = getLinesArrows(netlist, save = True)
 
 def closestPoint(left, right):
     """
@@ -224,7 +210,7 @@ def closestPoint(left, right):
         corresp_box.append(distsq.argmin())
     return corresp_box
 
-def getConnections(lines, coords, arrow_coords, save = False):
+def getConnections(lines, coords, arrow_coords, folder, save = False):
     """
     Parameters
     ----------
@@ -305,9 +291,8 @@ def getConnections(lines, coords, arrow_coords, save = False):
     
     return conn
 
-conn = getConnections(lines, coords, arrow_coords, save = True)
 
-def debugVerify(lines, save = False):    
+def debugVerify(lines, coords, arrow_coords, folder, save = False):    
     """
     Parameters
     ----------
@@ -372,8 +357,3 @@ def debugVerify(lines, save = False):
     if save:
         cv2.imwrite(folder + "trial.jpg", trial)
     return trial
-
-debugVerify(lines, save = True)
-
-block_data = pd.DataFrame(coords, columns = ['X', 'Y'])
-block_data.to_csv(folder + "Block Data.csv", index = False)
